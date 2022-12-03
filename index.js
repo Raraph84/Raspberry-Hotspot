@@ -1,6 +1,6 @@
 const { readdirSync } = require("fs");
 const { createPool } = require("mysql");
-const { getConfig, StartTasksManager, HttpServer, filterEndpointsByPath } = require("raraph84-lib");
+const { getConfig, StartTasksManager, HttpServer, filterEndpointsByPath, query } = require("raraph84-lib");
 const Config = getConfig(__dirname);
 
 if (process.platform !== "linux" || process.getuid() !== 0) {
@@ -63,6 +63,45 @@ api.on("request", async (/** @type {import("raraph84-lib/src/Request")} */ reque
     }
 
     request.urlParams = endpoint.params;
+
+    if (endpoint.infos.requireLogin) {
+
+        if (!request.headers.authorization) {
+            request.end(401, "Missing authorization");
+            return;
+        }
+
+        let token;
+        try {
+            token = (await query(database, "SELECT * FROM Tokens WHERE Token=?", [request.headers.authorization]))[0];
+        } catch (error) {
+            request.end(500, "Internal server error");
+            console.log(`SQL Error - ${__filename} - ${error}`);
+            return;
+        }
+
+        if (!token || token.Token !== request.headers.authorization) {
+            request.end(401, "Invalid token");
+            return;
+        }
+
+        if (Date.now() >= (token.Date + Config.sessionExpire * 1000)) {
+
+            try {
+                await query(database, "DELETE FROM Tokens WHERE Date<=?", [Date.now() - Config.sessionExpire * 1000]);
+            } catch (error) {
+                request.end(500, "Internal server error");
+                console.log(`SQL Error - ${__filename} - ${error}`);
+                return;
+            }
+
+            request.end(401, "Invalid token");
+            return;
+        }
+
+        query(database, "UPDATE Tokens SET Date=? WHERE Token=?", [Date.now(), token.Token])
+            .catch((error) => console.log(`SQL Error - ${__filename} - ${error}`));
+    }
 
     endpoint.run(request, database);
 });

@@ -19,5 +19,6 @@ module.exports.run = async (request) => {
 
 module.exports.infos = {
     path: "/wifi/stop",
-    method: "POST"
+    method: "POST",
+    requireLogin: true
 }

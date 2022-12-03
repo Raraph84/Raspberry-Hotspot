@@ -12,5 +12,6 @@ module.exports.run = async (request) => {
 
 module.exports.infos = {
     path: "/system/stats",
-    method: "GET"
+    method: "GET",
+    requireLogin: true
 }

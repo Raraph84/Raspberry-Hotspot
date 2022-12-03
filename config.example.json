@@ -5,6 +5,7 @@
         "password": "",
         "database": ""
     },
+    "base64password": "MTIzNA==",
     "internetInterfaces": [
         "usb0",
         "eth0"
