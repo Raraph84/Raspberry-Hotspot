@@ -1,4 +1,3 @@
-const { spawn } = require("child_process");
 const { createPool } = require("mysql");
 const { getConfig, StartTasksManager, HttpServer } = require("raraph84-lib");
 const Config = getConfig(__dirname);
@@ -9,12 +8,21 @@ if (process.platform !== "linux" || process.getuid() !== 0) {
 }
 
 const tasks = new StartTasksManager();
+
 let internetInterface = null;
+tasks.addTask((resolve) => {
+    console.log("Recherche de la connexion internet...");
+    require("./src/findInternet").start(internetInterface).then((interface) => {
+        console.log("Connexion internet trouvée sur l'interface " + interface + " !");
+        internetInterface = interface;
+        resolve();
+    }).catch(() => reject());
+}, (resolve) => resolve());
 
 const database = createPool(Config.database);
 tasks.addTask((resolve, reject) => {
     console.log("Connexion à la base de données...");
-    database.query("SELECT 0", (error, result) => {
+    database.query("SELECT 0", (error) => {
         if (error) {
             console.log("Impossible de se connecter à la base de données - " + error);
             reject(error);
@@ -23,10 +31,7 @@ tasks.addTask((resolve, reject) => {
             resolve();
         }
     });
-}, (resolve) => {
-    database.end();
-    resolve();
-});
+}, (resolve) => database.end(() => resolve()));
 
 const api = new HttpServer();
 tasks.addTask((resolve, reject) => {
@@ -38,26 +43,20 @@ tasks.addTask((resolve, reject) => {
         console.log("Impossible de lancer le serveur HTTP sur le port " + Config.apiPort + " - " + error);
         reject();
     });
-}, (resolve) => {
-    api.close().then(() => resolve());
-});
+}, (resolve) => api.close().then(() => resolve()));
 
-tasks.addTask((resolve, reject) => require("./src/loadBans").start(database).then(() => resolve()).catch(() => reject()), (resolve) => resolve());
+/*tasks.addTask((resolve, reject) => {
+    require("./src/loadBans").start(database).then(() => {
+        resolve();
+    }).catch(() => reject());
+}, (resolve) => resolve());*/
 
-tasks.addTask((resolve, reject) => require("./src/initHotspot").start(internetInterface).then(() => resolve()).catch(() => reject()), (resolve) => resolve());
+tasks.addTask((resolve, reject) => {
+    console.log("Lancement du hotspot sur l'interface " + Config.hotspotInterface + "...");
+    require("./src/initHotspot").start(internetInterface).then(() => {
+        console.log("Hotspot lancé sur l'interface " + Config.hotspotInterface + " !");
+        resolve();
+    }).catch(() => reject());
+}, (resolve) => resolve());
 
-const checkNetwork = async () => {
-    for (const interface of Config.internetInterfaces) {
-        const found = await new Promise((resolve) => spawn("ping", ["-W", "1", "-c", "1", "-I", interface, "1.1.1.1"]).on("close", (code) => resolve(code === 0)));
-        if (found) {
-            internetInterface = interface;
-            console.log("Connexion internet trouvée sur l'interface " + interface + " !");
-            tasks.run();
-            return;
-        }
-    }
-    setTimeout(() => checkNetwork(), 1000);
-}
-
-console.log("Vérification de la connexion internet...");
-checkNetwork();
+tasks.run();

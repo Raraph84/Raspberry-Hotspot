@@ -8,6 +8,6 @@
   "license": "ISC",
   "dependencies": {
     "mysql": "^2.18.1",
-    "raraph84-lib": "^2.14.0"
+    "raraph84-lib": "^2.15.3"
   }
 }
