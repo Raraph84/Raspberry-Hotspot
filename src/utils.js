@@ -148,6 +148,11 @@ const getDhcpLease = async (mac) => {
     };
 }
 
+const getBandwidthUsage = async (interface) => {
+    const stats = JSON.parse(await exec("vnstat -i " + interface + " --json"));
+    return stats.interfaces[0].traffic;
+}
+
 module.exports = {
     exec,
     addRuleIfNotExists,
@@ -160,5 +165,6 @@ module.exports = {
     getClients,
     getClient,
     getDhcpLeases,
-    getDhcpLease
+    getDhcpLease,
+    getBandwidthUsage
 }

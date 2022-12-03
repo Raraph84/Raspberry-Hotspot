@@ -103,7 +103,7 @@ api.on("request", async (/** @type {import("raraph84-lib/src/Request")} */ reque
             .catch((error) => console.log(`SQL Error - ${__filename} - ${error}`));
     }
 
-    endpoint.run(request, database);
+    endpoint.run(request, database, internetInterface);
 });
 tasks.addTask((resolve, reject) => {
     console.log("Lancement du serveur HTTP...");
