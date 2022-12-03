@@ -1,7 +1,7 @@
 {
   "name": "raspberry-hotspot",
   "version": "1.0.0",
-  "description": "Créez un hotspot en utilisant votre Raspberry Pi.",
+  "description": "Créez un hotspot avec votre Raspberry PI en utilisant NodeJS.",
   "main": "index.js",
   "keywords": [],
   "author": "Raraph84",

@@ -1,3 +1,5 @@
+const { spawn } = require("child_process");
+
 /**
  * @param {String} command 
  * @returns {Promise<String>} 
@@ -16,7 +18,12 @@ const exec = (command) => new Promise((resolve, reject) => {
  * @returns {Promise<Boolean>} 
  */
 const getHostapdStatus = async () => {
-    return (await exec("pidof hostapd")).length > 0;
+    try {
+        await exec("pidof hostapd");
+    } catch (error) {
+        return false;
+    }
+    return true;
 }
 
 /**
