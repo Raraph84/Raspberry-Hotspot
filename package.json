@@ -1,0 +1,13 @@
+{
+  "name": "raspberry-hotspot",
+  "version": "1.0.0",
+  "description": "Créez un hotspot en utilisant votre Raspberry Pi.",
+  "main": "index.js",
+  "keywords": [],
+  "author": "Raraph84",
+  "license": "ISC",
+  "dependencies": {
+    "mysql": "^2.18.1",
+    "raraph84-lib": "^2.14.0"
+  }
+}

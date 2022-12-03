@@ -1,0 +1,14 @@
+{
+    "database": {
+        "host": "",
+        "user": "",
+        "password": "",
+        "database": ""
+    },
+    "internetInterfaces": [
+        "usb0",
+        "eth0"
+    ],
+    "hotspotInterface": "wlan0",
+    "apiPort": 8080
+}
