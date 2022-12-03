@@ -57,6 +57,10 @@ const getSystemStats = async () => {
     return infos;
 }
 
+const poweroff = async () => {
+    await exec("poweroff");
+}
+
 const getHostapdStatus = async () => {
     try {
         await exec("pidof hostapd");
@@ -96,6 +100,21 @@ const getClients = async () => {
     return clients;
 }
 
+const getClient = async (mac) => {
+
+    const rawClient = await exec("iw dev wlan0 station get " + mac);
+    const lines = rawClient.trim().split("\n");
+    const header = lines[0].trim();
+    const infos = lines.slice(1).map((line) => line.split(":").map((part) => part.trim()));
+
+    return {
+        mac: header.split(" ")[0],
+        rxBytes: parseInt(infos.find((info) => info[0] === "rx bytes")[1]),
+        txBytes: parseInt(infos.find((info) => info[0] === "tx bytes")[1]),
+        connectedDuration: parseInt(infos.find((info) => info[0] === "connected time")[1]) * 1000
+    };
+}
+
 const getDhcpLeases = async () => {
 
     const leases = [];
@@ -116,14 +135,30 @@ const getDhcpLeases = async () => {
     return leases;
 }
 
+const getDhcpLease = async (mac) => {
+
+    const rawLease = await exec("cat /var/lib/misc/dnsmasq.leases | grep " + mac);
+    const infos = rawLease.split(" ");
+
+    return {
+        mac: infos[1],
+        ip: infos[2],
+        hostname: infos[3] === "*" ? null : infos[3],
+        expirationDate: parseInt(infos[0]) * 1000
+    };
+}
+
 module.exports = {
     exec,
     addRuleIfNotExists,
     deleteRuleIfExists,
+    poweroff,
     getSystemStats,
     getHostapdStatus,
     startHostapd,
     stopHostapd,
     getClients,
-    getDhcpLeases
+    getClient,
+    getDhcpLeases,
+    getDhcpLease
 }
