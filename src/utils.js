@@ -1,11 +1,12 @@
 const { spawn } = require("child_process");
+const { totalmem, freemem, uptime } = require("os");
 
 /**
  * @param {String} command 
  * @returns {Promise<String>} 
  */
 const exec = (command) => new Promise((resolve, reject) => {
-    const proc = spawn(command.split(" ")[0], command.split(" ").slice(1));
+    const proc = spawn("bash", ["-c", command]);
     let output = "";
     proc.stdout.on("data", (data) => output += data.toString());
     proc.on("close", (code) => {
@@ -13,6 +14,25 @@ const exec = (command) => new Promise((resolve, reject) => {
         else resolve(output);
     });
 });
+
+const getSystemStats = async () => {
+
+    const infos = {};
+
+    const nproc = parseInt(await exec("nproc --all"));
+    const loadavg = parseFloat(await exec("awk '{print $1}' /proc/loadavg"));
+    infos.cpuUsage = Math.round(loadavg * 100 / nproc * 100) / 100;
+
+    const temp = parseInt(await exec("cat /sys/class/thermal/thermal_zone0/temp"));
+    infos.cpuTemp = Math.round(temp / 1000 * 100) / 100;
+
+    infos.totalMem = Math.round(totalmem() / 1024 / 1024 / 1024 * 100) / 100;
+    infos.usedMem = Math.round((totalmem() - freemem()) / 1024 / 1024 / 1024 * 100) / 100;
+
+    infos.uptime = uptime() * 1000;
+
+    return infos;
+}
 
 /**
  * @returns {Promise<Boolean>} 
@@ -65,6 +85,7 @@ const deleteRuleIfExists = async (rule) => {
 
 module.exports = {
     exec,
+    getSystemStats,
     getHostapdStatus,
     startHostapd,
     stopHostapd,
