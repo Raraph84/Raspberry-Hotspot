@@ -6,6 +6,7 @@
         "database": ""
     },
     "base64password": "MTIzNA==",
+    "sessionExpire": 86400,
     "internetInterfaces": [
         "usb0",
         "eth0"
