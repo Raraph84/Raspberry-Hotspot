@@ -12,5 +12,6 @@
         "eth0"
     ],
     "hotspotInterface": "wlan0",
+    "captivePortal": true,
     "apiPort": 8080
 }

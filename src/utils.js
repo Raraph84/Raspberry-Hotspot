@@ -9,8 +9,9 @@ const exec = (command) => new Promise((resolve, reject) => {
     const proc = spawn("bash", ["-c", command]);
     let output = "";
     proc.stdout.on("data", (data) => output += data.toString());
+    proc.stderr.on("data", (data) => output += data.toString());
     proc.on("close", (code) => {
-        if (code !== 0) reject(code);
+        if (code !== 0) reject(code + " " + output);
         else resolve(output);
     });
 });
@@ -36,6 +37,48 @@ const deleteRuleIfExists = async (rule) => {
         return;
     }
     await exec("iptables -D " + rule);
+}
+
+/**
+ * @param {String} name 
+ * @param {String} type 
+ */
+const createIpsetIfNoExists = async (name, type) => {
+    try {
+        await exec("ipset list " + name);
+    } catch (error) {
+        await exec("ipset create " + name + " " + type);
+    }
+}
+
+/**
+ * @param {String} name 
+ */
+const flushIpset = async (name) => {
+    await exec("ipset flush " + name);
+}
+
+/**
+ * @param {String} name 
+ */
+const listIpset = async (name) => {
+    return (await exec("ipset list " + name)).trim().split("\n").slice(8);
+}
+
+/**
+ * @param {String} name 
+ * @param {String} ip 
+ */
+const addIpToIpset = async (ip, name) => {
+    await exec("ipset add " + name + " " + ip);
+}
+
+/**
+ * @param {String} name 
+ * @param {String} ip 
+ */
+const removeIpFromIpset = async (ip, name) => {
+    await exec("ipset del " + name + " " + ip);
 }
 
 const getSystemStats = async () => {
@@ -158,6 +201,11 @@ module.exports = {
     addRuleIfNotExists,
     deleteRuleIfExists,
     poweroff,
+    createIpsetIfNoExists,
+    flushIpset,
+    listIpset,
+    addIpToIpset,
+    removeIpFromIpset,
     getSystemStats,
     getHostapdStatus,
     startHostapd,

@@ -116,18 +116,38 @@ tasks.addTask((resolve, reject) => {
     });
 }, (resolve) => api.close().then(() => resolve()));
 
-/*tasks.addTask((resolve, reject) => {
-    require("./src/loadBans").start(database).then(() => {
-        resolve();
-    }).catch(() => reject());
-}, (resolve) => resolve());*/
-
 tasks.addTask((resolve, reject) => {
     console.log("Lancement du hotspot sur l'interface " + Config.hotspotInterface + "...");
     require("./src/initHotspot").start(internetInterface).then(() => {
         console.log("Hotspot lancé sur l'interface " + Config.hotspotInterface + " !");
         resolve();
     }).catch(() => reject());
+}, (resolve) => resolve());
+
+tasks.addTask(async (resolve, reject) => {
+    console.log("Chargement des bannissements...");
+    require("./src/initBans").start(database).then(() => {
+        console.log("Bannissements chargés !");
+        resolve();
+    }).catch((error) => {
+        console.log("Impossible de charger les bannissements - " + error);
+        reject();
+    });
+}, (resolve) => resolve());
+
+tasks.addTask(async (resolve, reject) => {
+    if (!Config.captivePortal) {
+        resolve();
+        return;
+    }
+    console.log("Lancement du portail captif...");
+    require("./src/initCaptivePortal").start(database).then(() => {
+        console.log("Portail captif lancé !");
+        resolve();
+    }).catch((error) => {
+        console.log("Impossible de lancer le portail captif - " + error);
+        reject();
+    });
 }, (resolve) => resolve());
 
 tasks.run();

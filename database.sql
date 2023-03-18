@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : localhost
--- Généré le : sam. 03 déc. 2022 à 15:46
--- Version du serveur : 10.3.36-MariaDB-0+deb10u2-log
--- Version de PHP : 8.1.12
+-- Généré le : sam. 18 mars 2023 à 21:33
+-- Version du serveur : 10.5.18-MariaDB-0+deb11u1
+-- Version de PHP : 8.2.3
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -24,17 +24,51 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Structure de la table `Banned_Devices`
+--
+
+CREATE TABLE `Banned_Devices` (
+  `MAC_Address` varchar(17) NOT NULL,
+  `Reason` varchar(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `Registered_Devices`
+--
+
+CREATE TABLE `Registered_Devices` (
+  `MAC_Address` varchar(17) NOT NULL,
+  `Name` varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Structure de la table `Tokens`
 --
 
 CREATE TABLE `Tokens` (
   `Token` varchar(50) NOT NULL,
   `Date` bigint(20) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Index pour les tables déchargées
 --
+
+--
+-- Index pour la table `Banned_Devices`
+--
+ALTER TABLE `Banned_Devices`
+  ADD PRIMARY KEY (`MAC_Address`);
+
+--
+-- Index pour la table `Registered_Devices`
+--
+ALTER TABLE `Registered_Devices`
+  ADD PRIMARY KEY (`MAC_Address`);
 
 --
 -- Index pour la table `Tokens`
