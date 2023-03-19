@@ -1,4 +1,4 @@
-const { getClient } = require("../utils");
+const { getDhcpLease } = require("../utils");
 
 /**
  * @param {import("raraph84-lib/src/Request")} request 
@@ -12,19 +12,19 @@ module.exports.run = async (request) => {
         return;
     }
 
-    let wifiClient;
+    let dhcpLease;
     try {
-        wifiClient = await getClient(mac);
+        dhcpLease = await getDhcpLease(mac);
     } catch (error) {
-        request.end(400, "This client does not exist");
+        request.end(400, "This dhcp lease does not exist");
         return;
     }
 
-    request.end(200, wifiClient);
+    request.end(200, dhcpLease);
 }
 
 module.exports.infos = {
-    path: "/wifi/clients/:mac",
+    path: "/dhcp/leases/:mac",
     method: "GET",
     requireLogin: true
 }

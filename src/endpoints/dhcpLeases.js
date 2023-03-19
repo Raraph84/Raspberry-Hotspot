@@ -5,9 +5,7 @@ const { getDhcpLeases } = require("../utils");
  */
 module.exports.run = async (request) => {
 
-    const leases = await getDhcpLeases();
-
-    request.end(200, { leases });
+    request.end(200, { dhcpLeases: await getDhcpLeases() });
 }
 
 module.exports.infos = {

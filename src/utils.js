@@ -134,7 +134,7 @@ const getClients = async () => {
     for (const rawClient of rawClients) {
 
         const lines = rawClient.trim().split("\n");
-        const header = lines[0].trim();
+        const header = lines[1].trim();
         const infos = lines.slice(1).map((line) => line.split(":").map((part) => part.trim()));
 
         clients.push({
@@ -156,7 +156,7 @@ const getClient = async (mac) => {
     const infos = lines.slice(1).map((line) => line.split(":").map((part) => part.trim()));
 
     return {
-        mac: header.split(" ")[0],
+        mac: header.split(" ")[1],
         rxBytes: parseInt(infos.find((info) => info[0] === "rx bytes")[1]),
         txBytes: parseInt(infos.find((info) => info[0] === "tx bytes")[1]),
         connectedDuration: parseInt(infos.find((info) => info[0] === "connected time")[1]) * 1000
