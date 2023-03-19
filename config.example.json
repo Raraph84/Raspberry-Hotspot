@@ -13,5 +13,8 @@
     ],
     "hotspotInterface": "wlan0",
     "captivePortal": true,
-    "apiPort": 8080
+    "apiPort": 8080,
+    "fanGpioPin": 17,
+    "fanEnableTemp": 45,
+    "fanDisableTemp": 40
 }

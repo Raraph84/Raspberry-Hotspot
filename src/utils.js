@@ -1,5 +1,6 @@
 const { spawn } = require("child_process");
 const { totalmem, freemem, uptime } = require("os");
+const { existsSync } = require("fs");
 
 /**
  * @param {String} command 
@@ -81,6 +82,11 @@ const removeIpFromIpset = async (ip, name) => {
     await exec("ipset del " + name + " " + ip);
 }
 
+const getProcTemp = async () => {
+    const temp = parseInt(await exec("cat /sys/class/thermal/thermal_zone0/temp"));
+    return cpuTemp = Math.round(temp / 1000 * 100) / 100;
+}
+
 const getSystemStats = async () => {
 
     const infos = {};
@@ -89,8 +95,7 @@ const getSystemStats = async () => {
     const loadavg = parseFloat(await exec("awk '{print $1}' /proc/loadavg"));
     infos.cpuUsage = Math.round(loadavg * 100 / nproc * 100) / 100;
 
-    const temp = parseInt(await exec("cat /sys/class/thermal/thermal_zone0/temp"));
-    infos.cpuTemp = Math.round(temp / 1000 * 100) / 100;
+    infos.cpuTemp = await getProcTemp();
 
     infos.totalMem = Math.round(totalmem() / 1024 / 1024 / 1024 * 100) / 100;
     infos.usedMem = Math.round((totalmem() - freemem()) / 1024 / 1024 / 1024 * 100) / 100;
@@ -196,6 +201,24 @@ const getBandwidthUsage = async (interface) => {
     return stats.interfaces[0].traffic;
 }
 
+/**
+ * @param {Number} pin 
+ * @param {String} direction 
+ */
+const initGpio = async (pin, direction) => {
+    if (!existsSync("/sys/class/gpio/gpio" + pin))
+        await exec("echo " + pin + " > /sys/class/gpio/export");
+    await exec("echo " + direction + " > /sys/class/gpio/gpio" + pin + "/direction");
+}
+
+/**
+ * @param {Number} pin 
+ * @param {Number} value 
+ */
+const setGpio = async (pin, value) => {
+    await exec("echo " + value + " > /sys/class/gpio/gpio" + pin + "/value");
+}
+
 module.exports = {
     exec,
     addRuleIfNotExists,
@@ -206,6 +229,7 @@ module.exports = {
     listIpset,
     addIpToIpset,
     removeIpFromIpset,
+    getProcTemp,
     getSystemStats,
     getHostapdStatus,
     startHostapd,
@@ -214,5 +238,7 @@ module.exports = {
     getClient,
     getDhcpLeases,
     getDhcpLease,
-    getBandwidthUsage
+    getBandwidthUsage,
+    initGpio,
+    setGpio
 }

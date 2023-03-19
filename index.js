@@ -10,6 +10,17 @@ if (process.platform !== "linux" || process.getuid() !== 0) {
 
 const tasks = new StartTasksManager();
 
+tasks.addTask((resolve, reject) => {
+    console.log("Lancement du ventilateur...");
+    require("./src/initFan").start().then(() => {
+        console.log("Ventilateur lancé !");
+        resolve();
+    }).catch((error) => {
+        console.log("Impossible de lancer le ventilateur - " + error);
+        reject();
+    });
+}, (resolve) => resolve());
+
 let internetInterface = null;
 tasks.addTask((resolve) => {
     console.log("Recherche de la connexion internet...");
