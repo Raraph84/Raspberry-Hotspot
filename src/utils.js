@@ -134,7 +134,7 @@ const getClients = async () => {
     for (const rawClient of rawClients) {
 
         const lines = rawClient.trim().split("\n");
-        const header = lines[1].trim();
+        const header = lines[0].trim();
         const infos = lines.slice(1).map((line) => line.split(":").map((part) => part.trim()));
 
         clients.push({
