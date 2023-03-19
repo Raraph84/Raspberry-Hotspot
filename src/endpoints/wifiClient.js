@@ -1,9 +1,11 @@
+const { query } = require("raraph84-lib");
 const { getClient } = require("../utils");
 
 /**
  * @param {import("raraph84-lib/src/Request")} request 
+ * @param {import("mysql").Pool} database 
  */
-module.exports.run = async (request) => {
+module.exports.run = async (request, database) => {
 
     const mac = request.urlParams.mac.toLowerCase();
 
@@ -20,7 +22,19 @@ module.exports.run = async (request) => {
         return;
     }
 
-    request.end(200, wifiClient);
+    let registeredDevice;
+    try {
+        registeredDevice = (await query(database, "SELECT * FROM Registered_Devices WHERE MAC_Address=?", [wifiClient.mac]))[0];
+    } catch (error) {
+        request.end(500, "Internal server error");
+        console.log(`SQL Error - ${__filename} - ${error}`);
+        return;
+    }
+
+    request.end(200, {
+        ...wifiClient,
+        firstName: registeredDevice ? registeredDevice.First_Name : null
+    });
 }
 
 module.exports.infos = {
