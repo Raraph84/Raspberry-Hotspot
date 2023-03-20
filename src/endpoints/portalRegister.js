@@ -56,7 +56,7 @@ module.exports.run = async (request, database) => {
     }
 
     try {
-        await query(database, "INSERT INTO Registered_Devices (MAC_Address, First_Name) VALUES (?, ?)", [lease.mac, message.firstName]);
+        await query(database, "INSERT INTO Registered_Devices (MAC_Address, First_Name, Registered_Date) VALUES (?, ?, ?)", [lease.mac, message.firstName, request.date]);
     } catch (error) {
         request.end(500, "Internal server error");
         console.log(`SQL Error - ${__filename} - ${error}`);
