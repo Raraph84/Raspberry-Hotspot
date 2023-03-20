@@ -109,6 +109,10 @@ const poweroff = async () => {
     await exec("poweroff");
 }
 
+const reboot = async () => {
+    await exec("reboot");
+}
+
 const getHostapdStatus = async () => {
     try {
         await exec("pidof hostapd");
@@ -224,6 +228,7 @@ module.exports = {
     addRuleIfNotExists,
     deleteRuleIfExists,
     poweroff,
+    reboot,
     createIpsetIfNoExists,
     flushIpset,
     listIpset,
