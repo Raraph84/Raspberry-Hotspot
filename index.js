@@ -137,7 +137,7 @@ tasks.addTask((resolve, reject) => {
 
 tasks.addTask(async (resolve, reject) => {
     console.log("Chargement des bannissements...");
-    require("./src/initBans").start(database).then(() => {
+    require("./src/initBans").start(database, internetInterface).then(() => {
         console.log("Bannissements chargés !");
         resolve();
     }).catch((error) => {
@@ -152,7 +152,7 @@ tasks.addTask(async (resolve, reject) => {
         return;
     }
     console.log("Lancement du portail captif...");
-    require("./src/initCaptivePortal").start(database).then(() => {
+    require("./src/initCaptivePortal").start(database, internetInterface).then(() => {
         console.log("Portail captif lancé !");
         resolve();
     }).catch((error) => {

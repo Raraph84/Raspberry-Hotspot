@@ -20,11 +20,11 @@ const exec = (command) => new Promise((resolve, reject) => {
 /**
  * @param {String} rule 
  */
-const addRuleIfNotExists = async (rule) => {
+const addRuleIfNotExists = async (rule, insert = false) => {
     try {
         await exec("iptables -C " + rule);
     } catch (error) {
-        await exec("iptables -A " + rule);
+        await exec("iptables " + (insert ? "-I " : "-A ") + rule);
     }
 }
 

@@ -3,7 +3,7 @@ const { exec, addRuleIfNotExists, getHostapdStatus, startHostapd } = require("./
 const Config = getConfig(__dirname + "/..");
 
 /**
- * @param {String} internetInterface 
+ * @param {string} internetInterface 
  */
 module.exports.start = async (internetInterface) => {
 
