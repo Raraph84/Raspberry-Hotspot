@@ -170,7 +170,7 @@ const getClient = async (mac) => {
 const getDhcpLeases = async () => {
 
     const leases = [];
-    const rawLeases = (await exec("cat /var/lib/misc/dnsmasq.leases")).trim().split("\n");
+    const rawLeases = (await exec("cat /var/lib/misc/dnsmasq.leases")).split("\n").map((line) => line.trim()).filter((line) => line !== "");
 
     for (const rawLease of rawLeases) {
 
