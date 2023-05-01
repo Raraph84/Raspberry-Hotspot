@@ -14,32 +14,32 @@ module.exports.start = async (database, internetInterface) => {
     await addRuleIfNotExists("PREROUTING -i " + Config.hotspotInterface + " -p tcp --dport 443 -m set --match-set banned src -j DNAT --to-destination 192.168.2.1:443 -t nat");
     await addRuleIfNotExists("FORWARD -i " + Config.hotspotInterface + " -o " + internetInterface + " -m set --match-set banned src -j DROP", true);
 
-    const updateSet = async () => {
+    await this.updateSet(database);
+    setInterval(() => this.updateSet(database), 10 * 1000);
+}
 
-        let bannedDevices;
-        try {
-            bannedDevices = await query(database, "SELECT * FROM Banned_Devices");
-        } catch (error) {
-            console.log(`SQL Error - ${__filename} - ${error}`);
-            return;
-        }
+module.exports.updateSet = async (database) => {
 
-        const bannedIps = await listIpset("banned");
-        const dhcpLeases = await getDhcpLeases();
-
-        for (const bannedIp of bannedIps) {
-            const lease = dhcpLeases.find((lease) => lease.ip === bannedIp);
-            if (!lease || !bannedDevices.some((device) => device.MAC_Address === lease.mac))
-                await removeIpFromIpset(bannedIp, "banned");
-        }
-
-        for (const bannedDevice of bannedDevices) {
-            const lease = dhcpLeases.find((lease) => lease.mac === bannedDevice.MAC_Address);
-            if (lease && !bannedIps.some((ip) => ip === lease.ip))
-                await addIpToIpset(lease.ip, "banned");
-        }
+    let bannedDevices;
+    try {
+        bannedDevices = await query(database, "SELECT * FROM Banned_Devices");
+    } catch (error) {
+        console.log(`SQL Error - ${__filename} - ${error}`);
+        return;
     }
 
-    await updateSet();
-    setInterval(() => updateSet(), 10 * 1000);
+    const bannedIps = await listIpset("banned");
+    const dhcpLeases = await getDhcpLeases();
+
+    for (const bannedIp of bannedIps) {
+        const lease = dhcpLeases.find((lease) => lease.ip === bannedIp);
+        if (!lease || !bannedDevices.some((device) => device.MAC_Address === lease.mac))
+            await removeIpFromIpset(bannedIp, "banned");
+    }
+
+    for (const bannedDevice of bannedDevices) {
+        const lease = dhcpLeases.find((lease) => lease.mac === bannedDevice.MAC_Address);
+        if (lease && !bannedIps.some((ip) => ip === lease.ip))
+            await addIpToIpset(lease.ip, "banned");
+    }
 }

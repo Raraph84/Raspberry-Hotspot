@@ -14,32 +14,32 @@ module.exports.start = async (database, internetInterface) => {
     await addRuleIfNotExists("PREROUTING -i " + Config.hotspotInterface + " -p tcp --dport 443 -m set ! --match-set authorized src -j DNAT --to-destination 192.168.2.1:443 -t nat");
     await addRuleIfNotExists("FORWARD -i " + Config.hotspotInterface + " -o " + internetInterface + " -m set ! --match-set authorized src -j DROP", true);
 
-    const updateSet = async () => {
+    await this.updateSet(database);
+    setInterval(() => this.updateSet(database), 10 * 1000);
+}
 
-        let registeredDevices;
-        try {
-            registeredDevices = await query(database, "SELECT * FROM Registered_Devices");
-        } catch (error) {
-            console.log(`SQL Error - ${__filename} - ${error}`);
-            return;
-        }
+module.exports.updateSet = async (database) => {
 
-        const authorizedIps = await listIpset("authorized");
-        const dhcpLeases = await getDhcpLeases();
-
-        for (const authorizedIp of authorizedIps) {
-            const lease = dhcpLeases.find((lease) => lease.ip === authorizedIp);
-            if (!lease || !registeredDevices.some((device) => device.MAC_Address === lease.mac))
-                await removeIpFromIpset(authorizedIp, "authorized");
-        }
-
-        for (const registeredDevice of registeredDevices) {
-            const lease = dhcpLeases.find((lease) => lease.mac === registeredDevice.MAC_Address);
-            if (lease && !authorizedIps.some((ip) => ip === lease.ip))
-                await addIpToIpset(lease.ip, "authorized");
-        }
+    let registeredDevices;
+    try {
+        registeredDevices = await query(database, "SELECT * FROM Registered_Devices");
+    } catch (error) {
+        console.log(`SQL Error - ${__filename} - ${error}`);
+        return;
     }
 
-    await updateSet();
-    setInterval(() => updateSet(), 10 * 1000);
+    const authorizedIps = await listIpset("authorized");
+    const dhcpLeases = await getDhcpLeases();
+
+    for (const authorizedIp of authorizedIps) {
+        const lease = dhcpLeases.find((lease) => lease.ip === authorizedIp);
+        if (!lease || !registeredDevices.some((device) => device.MAC_Address === lease.mac))
+            await removeIpFromIpset(authorizedIp, "authorized");
+    }
+
+    for (const registeredDevice of registeredDevices) {
+        const lease = dhcpLeases.find((lease) => lease.mac === registeredDevice.MAC_Address);
+        if (lease && !authorizedIps.some((ip) => ip === lease.ip))
+            await addIpToIpset(lease.ip, "authorized");
+    }
 }
