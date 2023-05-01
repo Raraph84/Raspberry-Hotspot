@@ -167,6 +167,10 @@ const getClient = async (mac) => {
     };
 }
 
+const disconnectClient = async (mac) => {
+    await exec("hostapd_cli deauthenticate " + mac);
+}
+
 const getDhcpLeases = async () => {
 
     const leases = [];
@@ -241,6 +245,7 @@ module.exports = {
     stopHostapd,
     getClients,
     getClient,
+    disconnectClient,
     getDhcpLeases,
     getDhcpLease,
     getBandwidthUsage,
