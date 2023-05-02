@@ -3,8 +3,8 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : localhost
--- Généré le : lun. 20 mars 2023 à 19:40
--- Version du serveur : 10.5.18-MariaDB-0+deb11u1
+-- Généré le : mar. 02 mai 2023 à 12:47
+-- Version du serveur : 10.5.19-MariaDB-0+deb11u2
 -- Version de PHP : 7.4.33
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -29,7 +29,7 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `Banned_Devices` (
   `MAC_Address` varchar(17) NOT NULL,
-  `Reason` varchar(100) NOT NULL
+  `Reason` varchar(500) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------

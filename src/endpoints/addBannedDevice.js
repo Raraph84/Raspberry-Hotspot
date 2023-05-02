@@ -45,7 +45,7 @@ module.exports.run = async (request, database) => {
         return;
     }
 
-    if (message.reason.length > 100) {
+    if (message.reason.length > 500) {
         request.end(400, "Reason too long");
         return;
     }
