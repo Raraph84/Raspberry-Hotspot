@@ -1,6 +1,6 @@
 const { readdirSync } = require("fs");
 const { createPool } = require("mysql");
-const { getConfig, StartTasksManager, HttpServer, filterEndpointsByPath, query } = require("raraph84-lib");
+const { getConfig, StartTasksManager, HttpServer, filterEndpointsByPath, query, WebSocketServer } = require("raraph84-lib");
 const Config = getConfig(__dirname);
 
 if (process.platform !== "linux" || process.getuid() !== 0) {
@@ -31,7 +31,7 @@ tasks.addTask((resolve) => {
     }).catch(() => reject());
 }, (resolve) => resolve());
 
-const database = createPool(Config.database);
+const database = createPool({ ...Config.database, charset: "utf8mb4_general_ci" });
 tasks.addTask((resolve, reject) => {
     console.log("Connexion à la base de données...");
     database.query("SELECT 0", (error) => {
@@ -126,6 +126,111 @@ tasks.addTask((resolve, reject) => {
         reject();
     });
 }, (resolve) => api.close().then(() => resolve()));
+
+const gateway = new WebSocketServer();
+gateway.on("connection", (/** @type {import("raraph84-lib/src/WebSocketClient")} */ client) => {
+    setTimeout(() => {
+        if (!client.infos.logged)
+            client.close("Please login");
+    }, 10 * 1000);
+});
+gateway.on("command", async (commandName, /** @type {import("raraph84-lib/src/WebSocketClient")} */ client, message) => {
+
+    if (commandName === "LOGIN") {
+
+        if (typeof message.token === "undefined") {
+            client.close("Missing token");
+            return;
+        }
+
+        if (typeof message.token !== "string") {
+            client.close("Token must be a string");
+            return;
+        }
+
+        let token;
+        try {
+            token = (await query(database, "SELECT * FROM Tokens WHERE Token=?", [message.token]))[0];
+        } catch (error) {
+            client.close("Internal server error");
+            console.log(`SQL Error - ${__filename} - ${error}`);
+            return;
+        }
+
+        if (!token || token.Token !== message.token) {
+            client.close("Invalid token");
+            return;
+        }
+
+        if (Date.now() >= (token.Date + Config.sessionExpire * 1000)) {
+
+            try {
+                await query(database, "DELETE FROM Tokens WHERE Date<=?", [Date.now() - Config.sessionExpire * 1000]);
+            } catch (error) {
+                client.close("Internal server error");
+                return;
+            }
+
+            client.close("Invalid token");
+            return;
+        }
+
+        query(database, "UPDATE Tokens SET Date=? WHERE Token=?", [Date.now(), token.Token])
+            .catch((error) => console.log(`SQL Error - ${__filename} - ${error}`));
+
+        client.infos.logged = true;
+        client.emitEvent("LOGGED");
+
+    } else if (commandName === "HEARTBEAT") {
+
+        if (!client.infos.logged) {
+            client.close("Please login");
+            return;
+        }
+
+        if (!client.infos.waitingHeartbeat) {
+            client.close("Useless heartbeat");
+            return;
+        }
+
+        client.infos.waitingHeartbeat = false;
+
+    } else {
+        client.close("Command " + commandName + " does not exist");
+        return;
+    }
+});
+tasks.addTask((resolve, reject) => {
+    console.log("Lancement du serveur WebSocket...");
+    gateway.listen(Config.gatewayPort).then(() => {
+        console.log("Serveur WebSocket lancé sur le port " + Config.gatewayPort + " !");
+        resolve();
+    }).catch(() => reject());
+}, (resolve) => gateway.close().then(() => resolve()));
+
+let gatewayHeartbeatInterval;
+tasks.addTask((resolve) => {
+    gatewayHeartbeatInterval = setInterval(() => {
+
+        gateway.clients.filter((client) => client.infos.logged).forEach((client) => {
+            client.infos.waitingHeartbeat = true;
+            client.emitEvent("HEARTBEAT");
+        });
+
+        setTimeout(() => {
+            gateway.clients.filter((client) => client.infos.waitingHeartbeat).forEach((client) => {
+                client.close("Please respond to heartbeat");
+            });
+        }, 10 * 1000);
+
+    }, 30 * 1000);
+    resolve();
+}, (resolve) => { clearInterval(gatewayHeartbeatInterval); resolve(); });
+
+tasks.addTask((resolve) => {
+    require("./src/initDnsmasqLogs").start(database, gateway);
+    resolve();
+}, (resolve) => resolve());
 
 tasks.addTask((resolve, reject) => {
     console.log("Lancement du hotspot sur l'interface " + Config.hotspotInterface + "...");
