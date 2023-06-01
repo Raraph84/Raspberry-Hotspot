@@ -12,7 +12,7 @@ module.exports.start = async (database, gateway) => {
     proc.stdout.on("data", async (data) => {
         for (const line of data.toString().trim().split("\n")) {
 
-            const parts = line.split(" ");
+            const parts = line.split(" ").filter((part) => part !== "");
             if (parts.length !== 8 || !parts[4].startsWith("query")) return;
 
             const lease = (await getDhcpLeases()).find((lease) => lease.ip === parts[7]);
