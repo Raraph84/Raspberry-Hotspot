@@ -110,8 +110,10 @@ api.on("request", async (/** @type {import("raraph84-lib/src/Request")} */ reque
             return;
         }
 
-        query(database, "UPDATE Tokens SET Date=? WHERE Token=?", [Date.now(), token.Token])
-            .catch((error) => console.log(`SQL Error - ${__filename} - ${error}`));
+        if (Date.now() > token.Date) {
+            query(database, "UPDATE Tokens SET Date=? WHERE Token=?", [Date.now(), token.Token])
+                .catch((error) => console.log(`SQL Error - ${__filename} - ${error}`));
+        }
     }
 
     endpoint.run(request, database, internetInterface);
@@ -175,11 +177,15 @@ gateway.on("command", async (commandName, /** @type {import("raraph84-lib/src/We
             return;
         }
 
-        query(database, "UPDATE Tokens SET Date=? WHERE Token=?", [Date.now(), token.Token])
-            .catch((error) => console.log(`SQL Error - ${__filename} - ${error}`));
+        if (Date.now() > token.Date) {
+            query(database, "UPDATE Tokens SET Date=? WHERE Token=?", [Date.now(), token.Token])
+                .catch((error) => console.log(`SQL Error - ${__filename} - ${error}`));
+        }
 
         client.infos.logged = true;
         client.emitEvent("LOGGED");
+
+        require("./src/initDnsmasqLogs").lastQueries.forEach((dnsQuery) => client.emitEvent("DNS_QUERY", dnsQuery));
 
     } else if (commandName === "HEARTBEAT") {
 
@@ -195,10 +201,8 @@ gateway.on("command", async (commandName, /** @type {import("raraph84-lib/src/We
 
         client.infos.waitingHeartbeat = false;
 
-    } else {
+    } else
         client.close("Command " + commandName + " does not exist");
-        return;
-    }
 });
 tasks.addTask((resolve, reject) => {
     console.log("Lancement du serveur WebSocket...");
