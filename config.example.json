@@ -16,6 +16,5 @@
     "apiPort": 8080,
     "gatewayPort": 8081,
     "fanGpioPin": 17,
-    "fanEnableTemp": 45,
-    "fanDisableTemp": 40
+    "fanEnableTemp": 45
 }

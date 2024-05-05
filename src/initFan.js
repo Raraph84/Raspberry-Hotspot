@@ -18,7 +18,7 @@ module.exports.start = async () => {
         if (!enabled && temp >= config.fanEnableTemp) {
             enabled = true;
             await setGpio(config.fanGpioPin, 1);
-        } else if (enabled && temp <= config.fanDisableTemp) {
+        } else if (enabled && temp < config.fanEnableTemp) {
             enabled = false;
             await setGpio(config.fanGpioPin, 0);
         }

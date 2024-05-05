@@ -1,6 +1,6 @@
 const { spawn } = require("child_process");
 const { totalmem, freemem, uptime } = require("os");
-const { existsSync } = require("fs");
+const { promises: fs, existsSync } = require("fs");
 
 /**
  * @param {string} command 
@@ -83,7 +83,7 @@ const removeIpFromIpset = async (ip, name) => {
 }
 
 const getProcTemp = async () => {
-    const temp = parseInt(await exec("cat /sys/class/thermal/thermal_zone0/temp"));
+    const temp = parseInt(await fs.readFile("/sys/class/thermal/thermal_zone0/temp", "utf-8"));
     return cpuTemp = Math.round(temp / 1000 * 100) / 100;
 }
 
