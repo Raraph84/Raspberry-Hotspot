@@ -1,9 +1,9 @@
-const { getConfig, query } = require("raraph84-lib");
+const { getConfig } = require("raraph84-lib");
 const { createIpsetIfNoExists, flushIpset, addRuleIfNotExists, getDhcpLeases, listIpset, addIpToIpset, removeIpFromIpset } = require("./utils");
 const config = getConfig(__dirname + "/..");
 
 /**
- * @param {import("mysql").Pool} database 
+ * @param {import("mysql2/promise").Pool} database 
  * @param {string} internetInterface 
  */
 module.exports.start = async (database, internetInterface) => {
@@ -18,11 +18,14 @@ module.exports.start = async (database, internetInterface) => {
     setInterval(() => this.updateSet(database), 10 * 1000);
 }
 
+/**
+ * @param {import("mysql2/promise").Pool} database 
+ */
 module.exports.updateSet = async (database) => {
 
     let bannedDevices;
     try {
-        bannedDevices = await query(database, "SELECT * FROM Banned_Devices");
+        [bannedDevices] = await database.query("SELECT * FROM Banned_Devices");
     } catch (error) {
         console.log(`SQL Error - ${__filename} - ${error}`);
         return;

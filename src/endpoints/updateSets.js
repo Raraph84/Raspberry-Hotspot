@@ -1,10 +1,9 @@
-const { query } = require("raraph84-lib");
 const { updateSet: updateCaptivePortalSet } = require("../initCaptivePortal");
 const { updateSet: updateBanSet } = require("../initBans");
 
 /**
  * @param {import("raraph84-lib/src/Request")} request 
- * @param {import("mysql").Pool} database 
+ * @param {import("mysql2/promise").Pool} database 
  */
 module.exports.run = async (request, database) => {
 

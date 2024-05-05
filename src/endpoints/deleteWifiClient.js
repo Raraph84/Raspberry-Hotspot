@@ -2,7 +2,7 @@ const { getClient, disconnectClient } = require("../utils");
 
 /**
  * @param {import("raraph84-lib/src/Request")} request 
- * @param {import("mysql").Pool} database 
+ * @param {import("mysql2/promise").Pool} database 
  */
 module.exports.run = async (request, database) => {
 

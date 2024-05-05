@@ -1,11 +1,10 @@
 const { spawn } = require("child_process");
-const { query } = require("raraph84-lib");
 const { getDhcpLeases } = require("./utils");
 
 module.exports.lastQueries = [];
 
 /**
- * @param {import("mysql").Pool} database 
+ * @param {import("mysql2/promise").Pool} database 
  * @param {import("raraph84-lib/src/WebSocketServer")} gateway
  */
 module.exports.start = (database, gateway) => {
@@ -38,7 +37,8 @@ module.exports.start = (database, gateway) => {
 
         let registeredDevice;
         try {
-            registeredDevice = (await query(database, "SELECT * FROM Registered_Devices WHERE MAC_Address=?", [lease.mac]))[0];
+            [registeredDevice] = await database.query("SELECT * FROM Registered_Devices WHERE MAC_Address=?", [lease.mac]);
+            registeredDevice = registeredDevice[0];
         } catch (error) {
             console.log(`SQL Error - ${__filename} - ${error}`);
             return;

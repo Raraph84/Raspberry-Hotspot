@@ -1,9 +1,9 @@
-const { getConfig, query, randomString } = require("raraph84-lib");
+const { getConfig, randomString } = require("raraph84-lib");
 const config = getConfig(__dirname + "/../..");
 
 /**
  * @param {import("raraph84-lib/src/Request")} request 
- * @param {import("mysql").Pool} database 
+ * @param {import("mysql2/promise").Pool} database 
  */
 module.exports.run = async (request, database) => {
 
@@ -33,7 +33,7 @@ module.exports.run = async (request, database) => {
     const token = randomString(50);
 
     try {
-        await query(database, "INSERT INTO Tokens VALUES (?, ?)", [token, Date.now()]);
+        await database.query("INSERT INTO Tokens VALUES (?, ?)", [token, Date.now()]);
     } catch (error) {
         request.end(500, "Internal server error");
         console.log(`SQL Error - ${__filename} - ${error}`);

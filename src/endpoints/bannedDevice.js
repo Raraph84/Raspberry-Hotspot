@@ -1,8 +1,6 @@
-const { query } = require("raraph84-lib");
-
 /**
  * @param {import("raraph84-lib/src/Request")} request 
- * @param {import("mysql").Pool} database 
+ * @param {import("mysql2/promise").Pool} database 
  */
 module.exports.run = async (request, database) => {
 
@@ -15,7 +13,8 @@ module.exports.run = async (request, database) => {
 
     let bannedDevice;
     try {
-        bannedDevice = (await query(database, "SELECT Banned_Devices.*, Registered_Devices.First_Name FROM Banned_Devices LEFT JOIN Registered_Devices ON Banned_Devices.MAC_Address=Registered_Devices.MAC_Address WHERE Banned_Devices.MAC_Address=?", [mac]))[0];
+        [bannedDevice] = await database.query("SELECT Banned_Devices.*, Registered_Devices.First_Name FROM Banned_Devices LEFT JOIN Registered_Devices ON Banned_Devices.MAC_Address=Registered_Devices.MAC_Address WHERE Banned_Devices.MAC_Address=?", [mac]);
+        bannedDevice = bannedDevice[0];
     } catch (error) {
         request.end(500, "Internal server error");
         console.log(`SQL Error - ${__filename} - ${error}`);

@@ -1,6 +1,6 @@
 const { readdirSync } = require("fs");
-const { createPool } = require("mysql");
-const { getConfig, StartTasksManager, HttpServer, filterEndpointsByPath, query, WebSocketServer } = require("raraph84-lib");
+const { createPool } = require("mysql2/promise");
+const { getConfig, StartTasksManager, HttpServer, filterEndpointsByPath, WebSocketServer } = require("raraph84-lib");
 const config = getConfig(__dirname);
 
 if (process.platform !== "linux" || process.getuid() !== 0) {
@@ -31,19 +31,19 @@ tasks.addTask((resolve) => {
     }).catch(() => reject());
 }, (resolve) => resolve());
 
-const database = createPool({ ...config.database, charset: "utf8mb4_general_ci" });
-tasks.addTask((resolve, reject) => {
+const database = createPool({ charset: "utf8mb4_general_ci", ...config.database });
+tasks.addTask(async (resolve, reject) => {
     console.log("Connexion à la base de données...");
-    database.query("SELECT 0", (error) => {
-        if (error) {
-            console.log("Impossible de se connecter à la base de données - " + error);
-            reject(error);
-        } else {
-            console.log("Connecté à la base de données !");
-            resolve();
-        }
-    });
-}, (resolve) => database.end(() => resolve()));
+    try {
+        await database.query("SELECT 1");
+    } catch (error) {
+        console.log("Impossible de se connecter à la base de données - " + error);
+        reject(error);
+        return;
+    }
+    console.log("Connecté à la base de données !");
+    resolve();
+}, (resolve) => database.end().then(() => resolve()));
 
 const api = new HttpServer();
 api.on("request", async (/** @type {import("raraph84-lib/src/Request")} */ request) => {
@@ -84,7 +84,8 @@ api.on("request", async (/** @type {import("raraph84-lib/src/Request")} */ reque
 
         let token;
         try {
-            token = (await query(database, "SELECT * FROM Tokens WHERE Token=?", [request.headers.authorization]))[0];
+            [token] = await database.query("SELECT * FROM Tokens WHERE Token=?", [request.headers.authorization]);
+            token = token[0];
         } catch (error) {
             request.end(500, "Internal server error");
             console.log(`SQL Error - ${__filename} - ${error}`);
@@ -99,7 +100,7 @@ api.on("request", async (/** @type {import("raraph84-lib/src/Request")} */ reque
         if (Date.now() >= (token.Date + config.sessionExpire * 1000)) {
 
             try {
-                await query(database, "DELETE FROM Tokens WHERE Date<=?", [Date.now() - config.sessionExpire * 1000]);
+                await database.query("DELETE FROM Tokens WHERE Date<=?", [Date.now() - config.sessionExpire * 1000]);
             } catch (error) {
                 request.end(500, "Internal server error");
                 console.log(`SQL Error - ${__filename} - ${error}`);
@@ -111,7 +112,7 @@ api.on("request", async (/** @type {import("raraph84-lib/src/Request")} */ reque
         }
 
         if (Date.now() > token.Date) {
-            query(database, "UPDATE Tokens SET Date=? WHERE Token=?", [Date.now(), token.Token])
+            database.query("UPDATE Tokens SET Date=? WHERE Token=?", [Date.now(), token.Token])
                 .catch((error) => console.log(`SQL Error - ${__filename} - ${error}`));
         }
     }
@@ -152,7 +153,8 @@ gateway.on("command", async (commandName, /** @type {import("raraph84-lib/src/We
 
         let token;
         try {
-            token = (await query(database, "SELECT * FROM Tokens WHERE Token=?", [message.token]))[0];
+            [token] = await database.query("SELECT * FROM Tokens WHERE Token=?", [message.token]);
+            token = token[0];
         } catch (error) {
             client.close("Internal server error");
             console.log(`SQL Error - ${__filename} - ${error}`);
@@ -167,7 +169,7 @@ gateway.on("command", async (commandName, /** @type {import("raraph84-lib/src/We
         if (Date.now() >= (token.Date + config.sessionExpire * 1000)) {
 
             try {
-                await query(database, "DELETE FROM Tokens WHERE Date<=?", [Date.now() - config.sessionExpire * 1000]);
+                await database.query("DELETE FROM Tokens WHERE Date<=?", [Date.now() - config.sessionExpire * 1000]);
             } catch (error) {
                 client.close("Internal server error");
                 return;
@@ -178,7 +180,7 @@ gateway.on("command", async (commandName, /** @type {import("raraph84-lib/src/We
         }
 
         if (Date.now() > token.Date) {
-            query(database, "UPDATE Tokens SET Date=? WHERE Token=?", [Date.now(), token.Token])
+            database.query("UPDATE Tokens SET Date=? WHERE Token=?", [Date.now(), token.Token])
                 .catch((error) => console.log(`SQL Error - ${__filename} - ${error}`));
         }
 

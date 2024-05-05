@@ -3,8 +3,8 @@ const { totalmem, freemem, uptime } = require("os");
 const { existsSync } = require("fs");
 
 /**
- * @param {String} command 
- * @returns {Promise<String>} 
+ * @param {string} command 
+ * @returns {Promise<string>} 
  */
 const exec = (command) => new Promise((resolve, reject) => {
     const proc = spawn("bash", ["-c", command]);
@@ -18,7 +18,7 @@ const exec = (command) => new Promise((resolve, reject) => {
 });
 
 /**
- * @param {String} rule 
+ * @param {string} rule 
  */
 const addRuleIfNotExists = async (rule, insert = false) => {
     try {
@@ -29,7 +29,7 @@ const addRuleIfNotExists = async (rule, insert = false) => {
 }
 
 /**
- * @param {String} rule 
+ * @param {string} rule 
  */
 const deleteRuleIfExists = async (rule) => {
     try {
@@ -41,8 +41,8 @@ const deleteRuleIfExists = async (rule) => {
 }
 
 /**
- * @param {String} name 
- * @param {String} type 
+ * @param {string} name 
+ * @param {string} type 
  */
 const createIpsetIfNoExists = async (name, type) => {
     try {
@@ -53,30 +53,30 @@ const createIpsetIfNoExists = async (name, type) => {
 }
 
 /**
- * @param {String} name 
+ * @param {string} name 
  */
 const flushIpset = async (name) => {
     await exec("ipset flush " + name);
 }
 
 /**
- * @param {String} name 
+ * @param {string} name 
  */
 const listIpset = async (name) => {
     return (await exec("ipset list " + name)).trim().split("\n").slice(8);
 }
 
 /**
- * @param {String} name 
- * @param {String} ip 
+ * @param {string} name 
+ * @param {string} ip 
  */
 const addIpToIpset = async (ip, name) => {
     await exec("ipset add " + name + " " + ip);
 }
 
 /**
- * @param {String} name 
- * @param {String} ip 
+ * @param {string} name 
+ * @param {string} ip 
  */
 const removeIpFromIpset = async (ip, name) => {
     await exec("ipset del " + name + " " + ip);
@@ -210,8 +210,8 @@ const getBandwidthUsage = async (interface) => {
 }
 
 /**
- * @param {Number} pin 
- * @param {String} direction 
+ * @param {number} pin 
+ * @param {string} direction 
  */
 const initGpio = async (pin, direction) => {
     if (!existsSync("/sys/class/gpio/gpio" + pin))
@@ -220,8 +220,8 @@ const initGpio = async (pin, direction) => {
 }
 
 /**
- * @param {Number} pin 
- * @param {Number} value 
+ * @param {number} pin 
+ * @param {number} value 
  */
 const setGpio = async (pin, value) => {
     await exec("echo " + value + " > /sys/class/gpio/gpio" + pin + "/value");

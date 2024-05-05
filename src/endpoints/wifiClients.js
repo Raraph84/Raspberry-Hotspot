@@ -1,9 +1,8 @@
-const { query } = require("raraph84-lib");
 const { getClients } = require("../utils");
 
 /**
  * @param {import("raraph84-lib/src/Request")} request 
- * @param {import("mysql").Pool} database 
+ * @param {import("mysql2/promise").Pool} database 
  */
 module.exports.run = async (request, database) => {
 
@@ -11,7 +10,7 @@ module.exports.run = async (request, database) => {
 
     let registeredDevices;
     try {
-        registeredDevices = await query(database, "SELECT * FROM Registered_Devices");
+        [registeredDevices] = await database.query("SELECT * FROM Registered_Devices");
     } catch (error) {
         request.end(500, "Internal server error");
         console.log(`SQL Error - ${__filename} - ${error}`);

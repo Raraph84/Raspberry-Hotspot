@@ -1,9 +1,8 @@
-const { query } = require("raraph84-lib");
 const { getDhcpLeases, addIpToIpset } = require("../utils");
 
 /**
  * @param {import("raraph84-lib/src/Request")} request 
- * @param {import("mysql").Pool} database 
+ * @param {import("mysql2/promise").Pool} database 
  */
 module.exports.run = async (request, database) => {
 
@@ -43,7 +42,8 @@ module.exports.run = async (request, database) => {
 
     let registeredDevice;
     try {
-        registeredDevice = (await query(database, "SELECT * FROM Registered_Devices WHERE MAC_Address=?", [lease.mac]))[0];
+        [registeredDevice] = await database.query("SELECT * FROM Registered_Devices WHERE MAC_Address=?", [lease.mac]);
+        registeredDevice = registeredDevice[0];
     } catch (error) {
         request.end(500, "Internal server error");
         console.log(`SQL Error - ${__filename} - ${error}`);
@@ -56,7 +56,7 @@ module.exports.run = async (request, database) => {
     }
 
     try {
-        await query(database, "INSERT INTO Registered_Devices (MAC_Address, First_Name, Registered_Date) VALUES (?, ?, ?)", [lease.mac, message.firstName, request.date]);
+        await database.query("INSERT INTO Registered_Devices (MAC_Address, First_Name, Registered_Date) VALUES (?, ?, ?)", [lease.mac, message.firstName, request.date]);
     } catch (error) {
         request.end(500, "Internal server error");
         console.log(`SQL Error - ${__filename} - ${error}`);

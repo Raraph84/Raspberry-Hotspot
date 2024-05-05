@@ -1,9 +1,8 @@
-const { query } = require("raraph84-lib");
 const { getDhcpLeases, removeIpFromIpset } = require("../utils");
 
 /**
  * @param {import("raraph84-lib/src/Request")} request 
- * @param {import("mysql").Pool} database 
+ * @param {import("mysql2/promise").Pool} database 
  */
 module.exports.run = async (request, database) => {
 
@@ -16,7 +15,8 @@ module.exports.run = async (request, database) => {
 
     let bannedDevice;
     try {
-        bannedDevice = (await query(database, "SELECT * FROM Banned_Devices WHERE MAC_Address=?", [mac]))[0];
+        [bannedDevice] = await database.query("SELECT * FROM Banned_Devices WHERE MAC_Address=?", [mac]);
+        bannedDevice = bannedDevice[0];
     } catch (error) {
         request.end(500, "Internal server error");
         console.log(`SQL Error - ${__filename} - ${error}`);
@@ -29,7 +29,7 @@ module.exports.run = async (request, database) => {
     }
 
     try {
-        await query(database, "DELETE FROM Banned_Devices WHERE MAC_Address=?", [bannedDevice.MAC_Address]);
+        await database.query("DELETE FROM Banned_Devices WHERE MAC_Address=?", [bannedDevice.MAC_Address]);
     } catch (error) {
         request.end(500, "Internal server error");
         console.log(`SQL Error - ${__filename} - ${error}`);

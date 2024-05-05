@@ -2,8 +2,8 @@ const { getBandwidthUsage } = require("../utils");
 
 /**
  * @param {import("raraph84-lib/src/Request")} request 
- * @param {import("mysql").Pool} database 
- * @param {String} internetInterface 
+ * @param {import("mysql2/promise").Pool} database 
+ * @param {string} internetInterface 
  */
 module.exports.run = async (request, database, internetInterface) => {
 
