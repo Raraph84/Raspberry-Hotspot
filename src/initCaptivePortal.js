@@ -1,6 +1,6 @@
 const { getConfig, query } = require("raraph84-lib");
 const { createIpsetIfNoExists, flushIpset, addRuleIfNotExists, getDhcpLeases, addIpToIpset, removeIpFromIpset, listIpset } = require("./utils");
-const Config = getConfig(__dirname + "/..");
+const config = getConfig(__dirname + "/..");
 
 /**
  * @param {import("mysql").Pool} database 
@@ -10,9 +10,9 @@ module.exports.start = async (database, internetInterface) => {
 
     await createIpsetIfNoExists("authorized", "hash:ip");
     await flushIpset("authorized");
-    await addRuleIfNotExists("PREROUTING -i " + Config.hotspotInterface + " -p tcp --dport 80 -m set ! --match-set authorized src -j DNAT --to-destination 192.168.2.1:80 -t nat");
-    await addRuleIfNotExists("PREROUTING -i " + Config.hotspotInterface + " -p tcp --dport 443 -m set ! --match-set authorized src -j DNAT --to-destination 192.168.2.1:443 -t nat");
-    await addRuleIfNotExists("FORWARD -i " + Config.hotspotInterface + " -o " + internetInterface + " -m set ! --match-set authorized src -j DROP", true);
+    await addRuleIfNotExists("PREROUTING -i " + config.hotspotInterface + " -p tcp --dport 80 -m set ! --match-set authorized src -j DNAT --to-destination 192.168.2.1:80 -t nat");
+    await addRuleIfNotExists("PREROUTING -i " + config.hotspotInterface + " -p tcp --dport 443 -m set ! --match-set authorized src -j DNAT --to-destination 192.168.2.1:443 -t nat");
+    await addRuleIfNotExists("FORWARD -i " + config.hotspotInterface + " -o " + internetInterface + " -m set ! --match-set authorized src -j DROP", true);
 
     await this.updateSet(database);
     setInterval(() => this.updateSet(database), 10 * 1000);

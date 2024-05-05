@@ -10,7 +10,7 @@ module.exports.lastQueries = [];
  */
 module.exports.start = (database, gateway) => {
 
-    const proc = spawn("tail", ["-f", "/var/log/dnsmasq.log"]);
+    const proc = spawn("tail", ["-n", "0", "-F", "/var/log/dnsmasq.log"]);
 
     let processing = false;
     let data = [""];
@@ -18,10 +18,8 @@ module.exports.start = (database, gateway) => {
 
         const date = Date.now();
 
-        chunk.toString().split("\n").forEach((line, i) => {
-            if (i === 0) data[data.length - 1] += line;
-            else data.push(line);
-        });
+        data[data.length - 1] += chunk.toString().split("\n")[0];
+        data.push(...chunk.toString().split("\n").slice(1));
 
         if (processing) return;
         processing = true;

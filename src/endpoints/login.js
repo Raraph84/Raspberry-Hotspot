@@ -1,5 +1,5 @@
 const { getConfig, query, randomString } = require("raraph84-lib");
-const Config = getConfig(__dirname + "/../..");
+const config = getConfig(__dirname + "/../..");
 
 /**
  * @param {import("raraph84-lib/src/Request")} request 
@@ -25,7 +25,7 @@ module.exports.run = async (request, database) => {
         return;
     }
 
-    if (message.password !== Buffer.from(Config.base64password, "base64").toString("utf-8")) {
+    if (message.password !== Buffer.from(config.base64password, "base64").toString("utf-8")) {
         request.end(401, "Invalid password");
         return;
     }

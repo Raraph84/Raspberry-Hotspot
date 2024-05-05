@@ -1,7 +1,7 @@
 const { readdirSync } = require("fs");
 const { createPool } = require("mysql");
 const { getConfig, StartTasksManager, HttpServer, filterEndpointsByPath, query, WebSocketServer } = require("raraph84-lib");
-const Config = getConfig(__dirname);
+const config = getConfig(__dirname);
 
 if (process.platform !== "linux" || process.getuid() !== 0) {
     console.log("This script must be run on linux as root !");
@@ -31,7 +31,7 @@ tasks.addTask((resolve) => {
     }).catch(() => reject());
 }, (resolve) => resolve());
 
-const database = createPool({ ...Config.database, charset: "utf8mb4_general_ci" });
+const database = createPool({ ...config.database, charset: "utf8mb4_general_ci" });
 tasks.addTask((resolve, reject) => {
     console.log("Connexion à la base de données...");
     database.query("SELECT 0", (error) => {
@@ -96,10 +96,10 @@ api.on("request", async (/** @type {import("raraph84-lib/src/Request")} */ reque
             return;
         }
 
-        if (Date.now() >= (token.Date + Config.sessionExpire * 1000)) {
+        if (Date.now() >= (token.Date + config.sessionExpire * 1000)) {
 
             try {
-                await query(database, "DELETE FROM Tokens WHERE Date<=?", [Date.now() - Config.sessionExpire * 1000]);
+                await query(database, "DELETE FROM Tokens WHERE Date<=?", [Date.now() - config.sessionExpire * 1000]);
             } catch (error) {
                 request.end(500, "Internal server error");
                 console.log(`SQL Error - ${__filename} - ${error}`);
@@ -120,11 +120,11 @@ api.on("request", async (/** @type {import("raraph84-lib/src/Request")} */ reque
 });
 tasks.addTask((resolve, reject) => {
     console.log("Lancement du serveur HTTP...");
-    api.listen(Config.apiPort).then(() => {
-        console.log("Serveur HTTP lancé sur le port " + Config.apiPort + " !");
+    api.listen(config.apiPort).then(() => {
+        console.log("Serveur HTTP lancé sur le port " + config.apiPort + " !");
         resolve();
     }).catch((error) => {
-        console.log("Impossible de lancer le serveur HTTP sur le port " + Config.apiPort + " - " + error);
+        console.log("Impossible de lancer le serveur HTTP sur le port " + config.apiPort + " - " + error);
         reject();
     });
 }, (resolve) => api.close().then(() => resolve()));
@@ -164,10 +164,10 @@ gateway.on("command", async (commandName, /** @type {import("raraph84-lib/src/We
             return;
         }
 
-        if (Date.now() >= (token.Date + Config.sessionExpire * 1000)) {
+        if (Date.now() >= (token.Date + config.sessionExpire * 1000)) {
 
             try {
-                await query(database, "DELETE FROM Tokens WHERE Date<=?", [Date.now() - Config.sessionExpire * 1000]);
+                await query(database, "DELETE FROM Tokens WHERE Date<=?", [Date.now() - config.sessionExpire * 1000]);
             } catch (error) {
                 client.close("Internal server error");
                 return;
@@ -206,8 +206,8 @@ gateway.on("command", async (commandName, /** @type {import("raraph84-lib/src/We
 });
 tasks.addTask((resolve, reject) => {
     console.log("Lancement du serveur WebSocket...");
-    gateway.listen(Config.gatewayPort).then(() => {
-        console.log("Serveur WebSocket lancé sur le port " + Config.gatewayPort + " !");
+    gateway.listen(config.gatewayPort).then(() => {
+        console.log("Serveur WebSocket lancé sur le port " + config.gatewayPort + " !");
         resolve();
     }).catch(() => reject());
 }, (resolve) => gateway.close().then(() => resolve()));
@@ -237,9 +237,9 @@ tasks.addTask((resolve) => {
 }, (resolve) => resolve());
 
 tasks.addTask((resolve, reject) => {
-    console.log("Lancement du hotspot sur l'interface " + Config.hotspotInterface + "...");
+    console.log("Lancement du hotspot sur l'interface " + config.hotspotInterface + "...");
     require("./src/initHotspot").start(internetInterface).then(() => {
-        console.log("Hotspot lancé sur l'interface " + Config.hotspotInterface + " !");
+        console.log("Hotspot lancé sur l'interface " + config.hotspotInterface + " !");
         resolve();
     }).catch(() => reject());
 }, (resolve) => resolve());
@@ -256,7 +256,7 @@ tasks.addTask(async (resolve, reject) => {
 }, (resolve) => resolve());
 
 tasks.addTask(async (resolve, reject) => {
-    if (!Config.captivePortal) {
+    if (!config.captivePortal) {
         resolve();
         return;
     }
