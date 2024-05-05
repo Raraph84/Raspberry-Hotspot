@@ -12,20 +12,25 @@ module.exports.start = (database, gateway) => {
     const proc = spawn("tail", ["-n", "0", "-F", "/var/log/dnsmasq.log"]);
 
     let processing = false;
-    let data = [""];
-    proc.stdout.on("data", async (chunk) => {
+    let output = "";
+    const onData = async (data) => {
+
+        output += data;
+        if (processing) return;
+        processing = true;
 
         const date = Date.now();
 
-        data[data.length - 1] += chunk.toString().split("\n")[0];
-        data.push(...chunk.toString().split("\n").slice(1));
+        while (output.includes("\n")) {
+            const line = output.slice(0, output.indexOf("\n"));
+            output = output.slice(output.indexOf("\n") + 1);
+            await onLine(date, line);
+        }
 
-        if (processing) return;
-        processing = true;
-        while (data.length > 1)
-            await onLine(date, data.shift());
         processing = false;
-    });
+    };
+    proc.stdout.on("data", (data) => onData(data.toString()));
+    proc.stderr.on("data", (data) => onData(data.toString()));
 
     const onLine = async (date, line) => {
 
@@ -50,5 +55,5 @@ module.exports.start = (database, gateway) => {
 
         this.lastQueries.push(dnsQuery);
         if (this.lastQueries.length > 100) this.lastQueries.shift();
-    }
+    };
 }
