@@ -49,6 +49,13 @@ module.exports.start = (database, gateway) => {
             return;
         }
 
+        try {
+            await database.query("INSERT INTO DNS_Queries (MAC_Address, Domain, Date) VALUES (?, ?, ?)", [lease.mac, parts[5], date]);
+        } catch (error) {
+            console.log(`SQL Error - ${__filename} - ${error}`);
+            return;
+        }
+
         const dnsQuery = { date, mac: lease.mac, name: registeredDevice ? registeredDevice.First_Name : parts[7], domain: parts[5] };
 
         gateway.clients.filter((client) => client.infos.logged).forEach((client) => client.emitEvent("DNS_QUERY", dnsQuery));

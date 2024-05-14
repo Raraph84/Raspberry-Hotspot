@@ -3,8 +3,8 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : localhost
--- Généré le : mar. 02 mai 2023 à 12:47
--- Version du serveur : 10.5.19-MariaDB-0+deb11u2
+-- Généré le : mar. 14 mai 2024 à 09:21
+-- Version du serveur : 10.5.23-MariaDB-0+deb11u1
 -- Version de PHP : 7.4.33
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
@@ -30,6 +30,19 @@ SET time_zone = "+00:00";
 CREATE TABLE `Banned_Devices` (
   `MAC_Address` varchar(17) NOT NULL,
   `Reason` varchar(500) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `DNS_Queries`
+--
+
+CREATE TABLE `DNS_Queries` (
+  `Query_ID` int(11) NOT NULL,
+  `MAC_Address` varchar(17) NOT NULL,
+  `Domain` varchar(1000) NOT NULL,
+  `Date` bigint(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -66,6 +79,12 @@ ALTER TABLE `Banned_Devices`
   ADD PRIMARY KEY (`MAC_Address`);
 
 --
+-- Index pour la table `DNS_Queries`
+--
+ALTER TABLE `DNS_Queries`
+  ADD PRIMARY KEY (`Query_ID`);
+
+--
 -- Index pour la table `Registered_Devices`
 --
 ALTER TABLE `Registered_Devices`
@@ -76,6 +95,16 @@ ALTER TABLE `Registered_Devices`
 --
 ALTER TABLE `Tokens`
   ADD PRIMARY KEY (`Token`);
+
+--
+-- AUTO_INCREMENT pour les tables déchargées
+--
+
+--
+-- AUTO_INCREMENT pour la table `DNS_Queries`
+--
+ALTER TABLE `DNS_Queries`
+  MODIFY `Query_ID` int(11) NOT NULL AUTO_INCREMENT;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
