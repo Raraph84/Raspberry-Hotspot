@@ -174,7 +174,7 @@ const disconnectClient = async (mac) => {
 const getDhcpLeases = async () => {
 
     const leases = [];
-    const rawLeases = (await fs.readFile("/var/lib/misc/dnsmasq.leases", "utf-8")).trim().split("\n").map((line) => line.trim());
+    const rawLeases = (await fs.readFile("/var/lib/misc/dnsmasq.leases", "utf-8")).split("\n").map((line) => line.trim()).filter((line) => line !== "");
 
     for (const rawLease of rawLeases) {
 
@@ -193,7 +193,7 @@ const getDhcpLeases = async () => {
 
 const getDhcpLease = async (mac) => {
 
-    const rawLeases = (await fs.readFile("/var/lib/misc/dnsmasq.leases", "utf-8")).trim().split("\n").map((line) => line.trim());
+    const rawLeases = (await fs.readFile("/var/lib/misc/dnsmasq.leases", "utf-8")).split("\n").map((line) => line.trim()).filter((line) => line !== "");
     const infos = rawLeases.find((rawLease) => rawLease.includes(mac)).split(" ");
 
     return {
