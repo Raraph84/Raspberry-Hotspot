@@ -1,5 +1,5 @@
 #!/bin/bash
-cd ~/hotspot
+cd /home/pi/hotspot
 
 while true; do
     echo "[$(date +"%d/%m/%Y %H:%M:%S")] Démarrage..." | tee -a logs.txt

@@ -1,9 +1,9 @@
 {
     "database": {
-        "host": "",
-        "user": "",
-        "password": "",
-        "database": ""
+        "host": "localhost",
+        "user": "hotspot",
+        "password": "yourPassword",
+        "database": "hotspot"
     },
     "base64password": "MTIzNA==",
     "sessionExpire": 86400,
