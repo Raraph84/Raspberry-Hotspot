@@ -39,6 +39,8 @@ echo "nameserver 1.0.0.1" | sudo tee /etc/dnsmasq-dns.conf # Change with the nam
 sudo cp hostapd.conf /etc/hostapd/hostapd.conf
 echo "DAEMON_CONF=\"/etc/hostapd/hostapd.conf\"" | sudo tee -a /etc/default/hostapd
 sudo systemctl unmask hostapd.service
+sudo systemctl disable hostapd.service # Disable run on startup since it is started by the worker 
+sudo update-alternatives --set cyfmac43455-sdio.bin /lib/firmware/cypress/cyfmac43455-sdio-minimal.bin # Use a minimal version of the Raspberry Pi Wifi chip to increase maximum connected clients
 ```
 
 ## Configure apache2
